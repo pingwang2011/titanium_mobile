@@ -13,6 +13,7 @@ import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import kankan.wheel.widget.WheelView;
@@ -20,6 +21,7 @@ import kankan.wheel.widget.WheelView;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -72,7 +74,12 @@ public class TiUIDateSpinner extends TiUIView
 		dayWheel = new WheelView(activity);
 		yearWheel = new WheelView(activity);
 		
-		monthWheel.setTextSize(20);
+		int textSize = 20;
+		Object obj = proxy.getProperty(TiC.PROPERTY_FONT);
+		if (obj instanceof HashMap) {
+			textSize = TiConvert.toInt((((HashMap<String, Object>)obj).get("fontSize")), 20);
+		}
+		monthWheel.setTextSize(textSize);
 		dayWheel.setTextSize(monthWheel.getTextSize());
 		yearWheel.setTextSize(monthWheel.getTextSize());
 		

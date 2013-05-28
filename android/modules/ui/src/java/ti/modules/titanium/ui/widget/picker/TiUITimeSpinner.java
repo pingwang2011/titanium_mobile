@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import kankan.wheel.widget.WheelView;
 
@@ -89,7 +90,13 @@ public class TiUITimeSpinner extends TiUIView
 		FormatNumericWheelAdapter minutes = new FormatNumericWheelAdapter(0, 59, formatter, 6, minuteInterval);
 		hoursWheel = new WheelView(activity);
 		minutesWheel = new WheelView(activity);
-		hoursWheel.setTextSize(20);
+
+		int textSize = 20;
+		Object obj = proxy.getProperty(TiC.PROPERTY_FONT);
+		if (obj instanceof HashMap) {
+			textSize = TiConvert.toInt((((HashMap<String, Object>)obj).get("fontSize")), 20);
+		}
+		hoursWheel.setTextSize(textSize);
 		minutesWheel.setTextSize(hoursWheel.getTextSize());
 		hoursWheel.setAdapter(hours);
 		minutesWheel.setAdapter(minutes);
