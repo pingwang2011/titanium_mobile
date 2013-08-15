@@ -125,6 +125,34 @@ public class HTTPClientProxy extends KrollProxy
 	}
 
 	@Kroll.method
+	public void clearCookie(String host, String name)
+	{
+		client.clearCookie(host, name);
+	}
+
+	@Kroll.method
+	public String getCookies(String host)
+	{
+		return client.getCookies(host);
+	}
+
+	/**
+	 * 
+	 * @param host
+	 * @param name
+	 * @param value
+	 * @param path
+	 * @param expiryDate use the format: "DAY, DD-MMM-YYYY HH:MM:SS"
+	 * @param secure
+	 * @param httponly
+	 */
+	@Kroll.method
+	public void addCookie(String host, String name, String value, String path, String expiryDate, boolean secure, boolean httponly)
+	{
+		client.addCookie(host, name, value, path, expiryDate, secure, httponly);
+	}
+
+	@Kroll.method
 	public void setRequestHeader(String header, String value)
 	{
 		client.setRequestHeader(header, value);

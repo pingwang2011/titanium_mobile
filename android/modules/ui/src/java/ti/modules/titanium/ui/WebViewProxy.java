@@ -23,6 +23,8 @@ import ti.modules.titanium.ui.widget.webview.TiUIWebView;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Message;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors = {
@@ -251,6 +253,49 @@ public class WebViewProxy extends ViewProxy
 			default:
 				setProperty(TiC.PROPERTY_PLUGIN_STATE, TiUIWebView.PLUGIN_STATE_OFF, true);
 		}
+	}
+
+	@Kroll.method
+	public String getCookies(String host)
+	{
+		CookieSyncManager.createInstance(TiApplication.getInstance().getCurrentActivity());
+		String lower_url = host.toLowerCase();
+		CookieManager cookieManager = CookieManager.getInstance();
+		return cookieManager.getCookie(lower_url);
+	}
+
+	/**
+	 * Add a cookie to the webview's cookie store.
+	 * @param host
+	 * @param name
+	 * @param value
+	 * @param path
+	 * @param expiryDate use the format: "DAY, DD-MMM-YYYY HH:MM:SS GMT"
+	 * @param secure
+	 * @param httponly
+	 */
+	@Kroll.method
+	public void addCookie(String host, String name, String value, String path, String expiryDate, boolean secure, boolean httponly)
+	{
+		String lower_url = host.toLowerCase();
+		String lower_name = name.toLowerCase();
+		String cookieString = lower_name + "=" + value + "; domain=" + lower_url;
+		if (path != null && path.length() > 0) {
+			cookieString += "; path=" + path;
+		}
+		if (expiryDate != null && expiryDate.length() > 0) {
+			cookieString += "; expires=" + expiryDate;
+		}
+		if (secure) {
+			cookieString += "; secure";
+		}
+		if (httponly) {
+			cookieString += "; httponly";
+		}
+		CookieSyncManager.createInstance(TiApplication.getInstance().getCurrentActivity());
+		CookieManager cookieManager = CookieManager.getInstance();
+		cookieManager.setCookie(lower_url, cookieString);
+		CookieSyncManager.getInstance().sync();
 	}
 
 	@Kroll.method

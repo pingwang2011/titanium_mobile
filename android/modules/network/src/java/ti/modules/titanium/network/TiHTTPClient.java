@@ -23,7 +23,9 @@ import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -77,6 +79,7 @@ import org.apache.http.impl.DefaultHttpRequestFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectHandler;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -101,11 +104,11 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiUrl;
-import android.os.Build;
 
 import ti.modules.titanium.xml.DocumentProxy;
 import ti.modules.titanium.xml.XMLModule;
 import android.net.Uri;
+import android.os.Build;
 
 public class TiHTTPClient
 {
@@ -738,7 +741,78 @@ public class TiHTTPClient
 			}
 		} 
 	}
-	
+
+	public void clearCookie(String url, String name)
+	{
+		String lower_url = url.toLowerCase();
+		String lower_name = name.toLowerCase();
+		List<Cookie> cookies = new ArrayList<Cookie>(client.getCookieStore().getCookies());
+		client.getCookieStore().clear();
+		if (!cookies.isEmpty()) {
+			for (Cookie cookie : cookies) {
+				String domain = cookie.getDomain().toLowerCase();
+				String cookieName = cookie.getName().toLowerCase();
+				if (!(lower_url.contains(domain) && lower_name.equals(cookieName))) {
+					client.getCookieStore().addCookie(cookie);
+				}
+			}
+		}
+	}
+
+	public void addCookie(String url, String name, String value, String path, String expiryDate, boolean secure, boolean httponly)
+	{
+		String lower_url = url.toLowerCase();
+		String lower_name = name.toLowerCase();
+		BasicClientCookie cookie = new BasicClientCookie(name, value);
+		cookie.setDomain(lower_url);
+		if (path != null && path.length() > 0) {
+			cookie.setPath(path);
+		}
+		if (expiryDate != null && expiryDate.length() > 0) {
+			String format = "EEE, dd-MMM-yyyy hh:mm:ss";
+			SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+			try {
+				cookie.setExpiryDate(dateFormat.parse(expiryDate));
+			} catch (java.text.ParseException e) {
+				Log.e(TAG, "Unable to parse the expiration date in addCookie().", e);
+			}
+		}
+		if (secure) {
+			cookie.setSecure(secure);
+		}
+		client.getCookieStore().addCookie(cookie);
+	}
+
+	public String getCookies(String url)
+	{
+		String lower_url = url.toLowerCase();
+		String result = "";
+		List<Cookie> cookies = client.getCookieStore().getCookies();
+		if (!cookies.isEmpty()) {
+			for (Cookie cookie : cookies) {
+				String domain = cookie.getDomain().toLowerCase();
+				if (lower_url.contains(domain)) {
+					String cookieString = cookie.getName() + "=" + cookie.getValue();
+					if (cookie.getPath() != null) {
+						cookieString += ", path=" + cookie.getPath();
+					}
+					if (cookie.getExpiryDate() != null) {
+						cookieString += ", expires=" + cookie.getExpiryDate().toGMTString();
+					}
+					if (cookie.isSecure()) {
+						cookieString += ", secure";
+					}
+					cookieString += "; ";
+					result = result.concat(cookieString);
+				}
+			}
+		}
+		if (result.endsWith("; ")) {
+			result = result.substring(0, (result.length()-2));
+		}
+		return result;
+	}
+
 	public void setRequestHeader(String header, String value)
 	{
 		if (readyState <= READY_STATE_OPENED) {
